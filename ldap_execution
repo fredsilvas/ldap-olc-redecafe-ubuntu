@@ -1,0 +1,342 @@
+sudo ./novo_ldap_server.sh --dominio "fredsilvas.local" --dominio_ldap "dc=fredsilvas,dc=local" --dc "fredsilvas" --organizacao "FREDSILVAS" --descricao "Fredsilvas Corp" --cidade "Curitiba" --uf "PR" --senha_adm "senha_adm" --senha_adm_passaporte "senha_adm_passaporte" --senha_leitor_passaporte "senha_leitor_passaporte" --senha_shib "senha_shib" --user_teste sim
+
+
+
+slapacl -b "uid=00123456,ou=people,dc=fredsilvas,dc=local" -D "cn=admin-passaporte,dc=fredsilvas,dc=local"
+slapacl -b "dc=fredsilvas,dc=local" -D "cn=admin-passaporte,dc=fredsilvas,dc=local"
+slapacl -b "dc=fredsilvas,dc=local" -D "cn=admins,ou=groups,dc=fredsilvas,dc=local"
+
+
+
+export DEBIAN_FRONTEND='noninteractive'
+
+echo -e "slapd slapd/root_password password senha_adm" |debconf-set-selections
+echo -e "slapd slapd/root_password_again password senha_adm" |debconf-set-selections
+
+echo -e "slapd slapd/internal/adminpw password senha_adm" |debconf-set-selections
+echo -e "slapd slapd/internal/generated_adminpw password senha_adm" |debconf-set-selections
+echo -e "slapd slapd/password2 password senha_adm" |debconf-set-selections
+echo -e "slapd slapd/password1 password senha_adm" |debconf-set-selections
+echo -e "slapd slapd/domain string fredsilvas.local" |debconf-set-selections
+echo -e "slapd shared/organization string FREDSILVAS" |debconf-set-selections
+echo -e "slapd slapd/backend string MDB" |debconf-set-selections
+echo -e "slapd slapd/purge_database boolean false" |debconf-set-selections
+echo -e "slapd slapd/move_old_database boolean true" |debconf-set-selections
+echo -e "slapd slapd/allow_ldap_v2 boolean false" |debconf-set-selections
+echo -e "slapd slapd/no_configuration boolean false" |debconf-set-selections
+
+# Grab slapd and ldap-utils (pre-seeded)
+apt-get install -y slapd ldap-utils
+
+# Must reconfigure slapd for it to work properly 
+sudo dpkg-reconfigure slapd
+
+
+
+### TROCAR PASSWORD
+cat > admin_pw_config_dit.ldif << 'EOF'
+dn: olcDatabase={1}mdb,cn=config
+changetype: modify
+replace: olcRootPW
+olcRootPW: {SSHA}J935ZX/JFNiAKG2fowL00YtalFqV48uq
+EOF
+
+cat > admin_pw_normal_dit.ldif << 'EOF'
+dn: cn=admin,dc=fredsilvas,dc=local
+changetype: modify
+replace: userPassword
+userPassword: {SSHA}J935ZX/JFNiAKG2fowL00YtalFqV48uq
+EOF
+
+ldapmodify -H ldapi:/// -x -D cn=admin,dc=fredsilvas,dc=local -w admin -f admin_pw_normal_dit.ldif
+ldapmodify -H ldapi:/// -f admin_pw_config_dit.ldif
+# verify
+ldapsearch -H ldapi:/// -x -D cn=admin,dc=fredsilvas,dc=local -W -b dc=fredsilvas,dc=local cn=admin | grep 'userPassword'
+
+
+
+
+
+
+
+
+cat > 01-backend_mdb.ldif <<_EOF_
+dn: cn=module,cn=config
+objectClass: olcModuleList
+cn: module
+olcModulepath: /usr/lib/ldap
+olcModuleload: back_mdb
+
+dn: olcDatabase=mdb,cn=config
+objectClass: olcDatabaseConfig
+objectClass: olcMdbConfig
+olcDatabase: mdb
+olcSuffix: dc=fredsilvas,dc=local
+olcDbDirectory: /var/lib/ldap
+olcRootDN: cn=admin,dc=fredsilvas,dc=local
+olcRootPW: {SSHA}J935ZX/JFNiAKG2fowL00YtalFqV48uq
+olcDbIndex: objectClass eq
+olcLastMod: TRUE
+olcMonitoring: TRUE
+olcDbEnvFlags: writemap
+olcDBNoSync: TRUE
+_EOF_
+
+ldapadd -Y EXTERNAL -H ldapi:/// -f 01-backend_mdb.ldif
+
+
+
+cat > 02-raiz.ldif <<_EOF_
+dn: dc=fredsilvas,dc=local
+dc: fredsilvas
+objectClass: dcObject
+objectClass: organization
+objectClass: top
+o: Fredsilvas
+description: Fredsilvas Corp
+
+dn: ou=people,dc=fredsilvas,dc=local
+objectClass: organizationalUnit
+ou: people
+_EOF_
+
+
+cat > 02-raiz.ldif <<_EOF_
+dn: ou=people,dc=fredsilvas,dc=local
+objectClass: organizationalUnit
+ou: people
+
+dn: ou=groups,dc=fredsilvas,dc=local
+objectClass: organizationalUnit
+ou: groups
+_EOF_
+
+
+ldapadd -x -D "cn=admin,dc=fredsilvas,dc=local" -w senha_adm -H ldap:// -f 02-raiz.ldif
+
+
+
+cat > 08-usuario.ldif <<_EOF_
+dn: uid=00123456,ou=people,dc=fredsilvas,dc=local
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: brPerson
+objectClass: schacPersonalCharacteristics
+uid: 00123456
+brcpf: 12345678900
+brpassport: A23456
+schacCountryOfCitizenship: Brazil
+telephoneNumber: +55 12 34567890
+mail: joao.silva@gmail.com
+cn: Joao
+sn: Silva
+userPassword: {SSHA}pTiHYt+VI3BBCWm4skm/p3r7Log7otfj
+schacDateOfBirth:20181030
+_EOF_
+
+
+cat > 09-usr_samba.ldif <<_EOF_
+dn: uid=00123456,ou=people,dc=fredsilvas,dc=local
+changetype: modify
+add: objectClass
+objectClass: sambaSamAccount
+-
+add: sambaSID
+sambaSID: S-1-5-21-${RANDOM}-${RANDOM}-${RANDOM}-1102
+_EOF_
+
+
+cat > 10-usr_extras.ldif <<_EOF_
+dn: braff=1,uid=00123456,ou=people,dc=fredsilvas,dc=local
+objectclass: brEduPerson
+braff: 1
+brafftype: aluno-graduacao
+brEntranceDate: 20070205
+
+dn: braff=2,uid=00123456,ou=people,dc=fredsilvas,dc=local
+objectclass: brEduPerson
+braff: 2
+brafftype: professor
+brEntranceDate: 20070205
+brExitDate: 20080330
+
+dn: brvoipphone=1,uid=00123456,ou=people,dc=fredsilvas,dc=local
+objectclass: brEduVoIP
+brvoipphone: 1
+brEduVoIPalias: 2345
+brEduVoIPtype: pstn
+brEduVoIPadmin: uid=00123456,ou=people,dc=fredsilvas,dc=local
+brEduVoIPcallforward: +55 22 3418 9199
+brEduVoIPaddress: 200.157.0.333
+brEduVoIPexpiryDate:  20081030
+brEduVoIPbalance: 295340
+brEduVoIPcredit: 300000
+
+dn: brvoipphone=2,uid=00123456,ou=people,dc=fredsilvas,dc=local
+objectclass: brEduVoIP
+brvoipphone: 2
+brvoipalias: 2346
+brEduVoIPtype: celular
+brEduVoIPadmin: uid=00123456,ou=people,dc=fredsilvas,dc=local
+
+dn: brbiosrc=left-middle,uid=00123456,ou=people,dc=fredsilvas,dc=local
+objectclass: brBiometricData
+brbiosrc: left-middle
+brBiometricData: ''
+brCaptureDate: 20001212
+_EOF_
+
+
+
+
+cat > 12-shib.ldif <<_EOF_
+dn: cn=leitor-shib,dc=fredsilvas,dc=local
+objectClass: simpleSecurityObject
+objectClass: organizationalRole
+cn: leitor-shib
+description: Leitor da base para o shibboleth
+userPassword: {SSHA}S6qBHe1V4La98DiGbKcbvG4LIQTT1mHR
+_EOF_
+
+
+
+
+cat > 14-grupos.ldif <<_EOF_
+dn: ou=groups,dc=fredsilvas,dc=local
+objectClass: organizationalUnit
+objectClass: top
+ou: groups
+
+dn: cn=admins,ou=groups,dc=fredsilvas,dc=local
+objectClass: groupofnames
+objectClass: top
+cn: admins
+member: cn=admin,dc=fredsilvas,dc=local
+
+dn: cn=leitores,ou=groups,dc=fredsilvas,dc=local
+objectClass: groupofnames
+objectClass: top
+cn: leitores
+member: cn=leitor-shib,dc=fredsilvas,dc=local
+
+dn: cn=leitores-campi,ou=groups,dc=fredsilvas,dc=local
+objectClass: groupofnames
+objectClass: top
+cn: leitores-campi
+member: cn=user-teste,dc=fredsilvas,dc=local
+
+dn: cn=replicadores,ou=groups,dc=fredsilvas,dc=local
+objectClass: groupofnames
+objectClass: top
+cn: replicadores
+member: cn=user-teste,dc=fredsilvas,dc=local
+
+dn: cn=replicadores-campi,ou=groups,dc=fredsilvas,dc=local
+objectClass: groupofnames
+objectClass: top
+cn: replicadores-campi
+member: cn=user-teste,dc=fredsilvas,dc=local
+_EOF_
+
+
+
+
+printf "17-acls_mdb.ldif"
+cat > 17-acls_mdb.ldif <<_EOF_
+dn: olcDatabase={1}mdb,cn=config
+changetype: modify
+add: olcAccess
+olcAccess: to *
+  by dn.base="cn=admin,${DOMINIO_LDAP}" manage
+  by * break
+-
+add: olcAccess
+olcAccess: to dn.subtree="${DOMINIO_LDAP}"
+  by dn.base="cn=admin-passaporte,${DOMINIO_LDAP}" write
+  by group.base="cn=admins,ou=groups,${DOMINIO_LDAP}" write
+  by group.base="cn=dtic,ou=groups,${DOMINIO_LDAP}" write
+  by * none
+-
+add: olcAccess
+olcAccess: to attrs=userPassword,sambaNTPassword,sambaPasswordHistory,sambaPwdLastSet,shadowLastChange,shadowExpire
+  by dn.base="cn=admin,${DOMINIO_LDAP}" write
+  by dn.base="cn=admin-passaporte,${DOMINIO_LDAP}" write
+  by dn.base="cn=leitor-shib,${DOMINIO_LDAP}" read
+  by group.base="cn=admins,ou=groups,${DOMINIO_LDAP}" write
+  by group.base="cn=dtic,ou=groups,${DOMINIO_LDAP}" write
+  by group.base="cn=leitores,ou=groups,${DOMINIO_LDAP}" read
+  by group.base="cn=leitores-campi,ou=groups,${DOMINIO_LDAP}" read
+  by group.base="cn=replicadores,ou=groups,${DOMINIO_LDAP}" read
+  by group.base="cn=replicadores-campi,ou=groups,${DOMINIO_LDAP}" read
+  by self write
+  by anonymous auth
+  by * none
+-
+add: olcAccess
+olcAccess: to dn.regex="^uid=([^,]+),ou=people,${DOMINIO_LDAP}\$"
+  by dn.base="cn=admin,${DOMINIO_LDAP}" write
+  by dn.base="cn=admin-passaporte,${DOMINIO_LDAP}" write
+  by dn.base="cn=leitor-shib,${DOMINIO_LDAP}" read
+  by group.base="cn=admins,ou=groups,${DOMINIO_LDAP}" write
+  by group.base="cn=dtic,ou=groups,${DOMINIO_LDAP}" write
+  by group.base="cn=leitores,ou=groups,${DOMINIO_LDAP}" read
+  by group.base="cn=leitores-campi,ou=groups,${DOMINIO_LDAP}" read
+  by group.base="cn=replicadores,ou=groups,${DOMINIO_LDAP}" read
+  by group.base="cn=replicadores-campi,ou=groups,${DOMINIO_LDAP}" read  
+  by * none
+-
+add: olcAccess
+olcAccess: to *
+  by dn.base="cn=admin,${DOMINIO_LDAP}" write
+  by dn.base="cn=admin-passaporte,${DOMINIO_LDAP}" write
+  by dn.base="cn=leitor-shib,${DOMINIO_LDAP}" read
+  by group.base="cn=admins,ou=groups,${DOMINIO_LDAP}" write
+  by group.base="cn=dtic,ou=groups,${DOMINIO_LDAP}" write
+  by group.base="cn=leitores,ou=groups,${DOMINIO_LDAP}" read
+  by group.base="cn=leitores-campi,ou=groups,${DOMINIO_LDAP}" read
+  by group.base="cn=replicadores,ou=groups,${DOMINIO_LDAP}" read
+  by group.base="cn=replicadores-campi,ou=groups,${DOMINIO_LDAP}" read
+  by * none
+-
+add: olcAccess
+olcAccess: to dn.base=""
+  by * read
+
+_EOF_
+
+
+
+cat > 18-limits_replicator_mdb.ldif <<_EOF_
+dn: olcDatabase={1}mdb,cn=config
+changetype: modify
+add: olcLimits
+olcLimits: group/groupOfNames/member="cn=admins,ou=groups,dc=fredsilvas,dc=local"
+  time.soft=unlimited time.hard=unlimited
+  size.soft=unlimited size.hard=unlimited
+-
+add: olcLimits
+olcLimits: group/groupOfNames/member="cn=replicadores,ou=groups,dc=fredsilvas,dc=local"
+  time.soft=unlimited time.hard=unlimited
+  size.soft=unlimited size.hard=unlimited
+_EOF_
+
+
+
+ldapsearch -x -D "cn=admin,dc=fredsilvas,dc=local" -w senha_adm -LLL -H ldaps:/// -b "uid=00123456,ou=people,dc=fredsilvas,dc=local" dn memberof -s base
+
+
+
+
+openssl req -new -x509 -nodes -out /etc/ldap/sasl2/fredsilvas.local.crt -keyout /etc/ldap/sasl2/fredsilvas.local.key -days 3650 -subj "/C=BR/ST=PR/L=CURITIBA/O=FREDSILVAS/CN=fredsilvas.local"
+
+
+
+cat > 03-ssl.ldif <<_EOF_
+dn: cn=config
+changetype: modify
+replace: olcTLSCertificateFile
+olcTLSCertificateFile: /etc/ldap/sasl2/fredsilvas.local.crt
+-
+replace: olcTLSCertificateKeyFile
+olcTLSCertificateKeyFile: /etc/ldap/sasl2/fredsilvas.local.key
+_EOF_
