@@ -57,15 +57,15 @@ while [ -n "$1" ]; do # while loop starts
       echo ""
       echo " sudo ./ldap_remove_user_teste.sh --DOMINIO_LDAP cn=xpto,dc=local --SENHA_ADM \"senha_de_administrador\""
       echo ""
-      echo " --DOMINIO_LDAP|--dominio_ldap                 | <Obrigatorio> Dominio no formato LDAP. Ex: cn=xpto,cn=local" 
-      echo " --SENHA_ADM|--senha_adm                       | <Obrigatorio> Senha do Administrador do LDAP. Ex: \"h#s9a8dnag62!@\""
+      echo " --DOMINIO_LDAP|--dominio_ldap | <Obrigatorio> Dominio no formato LDAP. Ex: cn=xpto,cn=local"
+      echo " --SENHA_ADM|--senha_adm       | <Obrigatorio> Senha do Administrador do LDAP. Ex: \"h#s9a8dnag62!@\""
       echo ""
       echo "*** IMPORTANTE ***"
       echo "Quando um parametro necessitar de valores separados por espaco, escrever o mesmo entre aspas duplas. Exemplo \"Empresa XPTO Ltda\""
       exit 1;
       ;;
 
-	  *) echo "Parametro $1 nao reconhecido. Digite --HELP|--help para lista de parametros"       
+	  *) echo "Parametro $1 nao reconhecido. Digite --HELP|--help para lista de parametros"
        ;;
 
 	esac

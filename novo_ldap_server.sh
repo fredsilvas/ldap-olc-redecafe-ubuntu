@@ -82,7 +82,7 @@ while [ -n "$1" ]; do # while loop starts
     --SENHA_SHIB|--senha_shib) SENHA_SHIB=$2; shift;;
     --SENHA_USER_TESTE|--senha_user_teste) SENHA_USER_TESTE=$2; shift;;
     --USER_TESTE|--user_teste) USER_TESTE=$2; shift;;
-  
+
     --HELP|--help)
       echo ""
       echo "Para executar este script é necessário que todos os parametros sejam informados corretamente."
@@ -90,7 +90,7 @@ while [ -n "$1" ]; do # while loop starts
       echo " sudo ./novo_ldap_server.sh --DOMINIO xpto.local --DOMINIO_LDAP cn=xpto,dc=local --DC xpto --ORGANIZACAO XPTO --DESCRICAO \"Empresa XPTO\" --CIDADE Curitiba --UF PR --SENHA_ADM \"senha_de_administrador\" --SENHA_ADM_PASSAPORTE \"senha_de_administrador_passaporte\" --SENHA_LEITOR_PASSAPORTE \"senha_de_leitura_passaporte\" --SENHA_SHIB \"senha_usuario_shibboleth\" --USER_TESTE nao"
       echo ""
       echo " --DOMINIO|--dominio                                 | <Obrigatorio> Dominio a ser condfigurado. Ex: xpto.local"
-      echo " --DOMINIO_LDAP|--dominio_ldap                       | <Obrigatorio> Dominio no formato LDAP. Ex: cn=xpto,cn=local" 
+      echo " --DOMINIO_LDAP|--dominio_ldap                       | <Obrigatorio> Dominio no formato LDAP. Ex: cn=xpto,cn=local"
       echo " --DC|--dc                                           | <Obrigatorio> Primeira parte do dominio. Ex: xpto"
       echo " --ORGANIZACAO|--organizacao                         | <Obrigatorio> Sigla da Organizacao. Ex: XPTO"
       echo " --DESCRICAO|--descricao                             | <Obrigatorio> Nome/Descricao da Organizacao: Ex: \"Empresa XPTO Ltda.\""
@@ -108,7 +108,7 @@ while [ -n "$1" ]; do # while loop starts
       exit 1;
       ;;
 
-	  *) echo "Parametro $1 nao reconhecido. Digite --HELP|--help para lista de parametros"       
+	  *) echo "Parametro $1 nao reconhecido. Digite --HELP|--help para lista de parametros"
        ;;
 
 	esac
@@ -224,7 +224,7 @@ echo -e "slapd slapd/no_configuration boolean false" |debconf-set-selections
 apt-get update && apt-get upgrade -y
 apt-get install -y slapd ldap-utils slapd-smbk5pwd
 
-# Must reconfigure slapd for it to work properly 
+# Must reconfigure slapd for it to work properly
 #sudo dpkg-reconfigure slapd
 
 systemctl enable slapd.service

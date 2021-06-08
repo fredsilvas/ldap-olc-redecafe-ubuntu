@@ -59,7 +59,7 @@ while [ -n "$1" ]; do # while loop starts
       echo ""
       echo " sudo ./ldap_read_only_replica_user.sh --DOMINIO_LDAP cn=xpto,dc=local --SENHA_ROR_REPLICATOR \"senha_ror_replicator\" --SENHA_ADM \"senha_de_administrador\""
       echo ""
-      echo " --DOMINIO_LDAP|--dominio_ldap                 | <Obrigatorio> Dominio no formato LDAP. Ex: cn=xpto,cn=local" 
+      echo " --DOMINIO_LDAP|--dominio_ldap                 | <Obrigatorio> Dominio no formato LDAP. Ex: cn=xpto,cn=local"
       echo " --SENHA_ROR_REPLICATOR|--senha_ror_replicator | <Obrigatorio> Senha do usuario de Read Only Replica da base ldap. Ex: \"h#s9a8dnag62!@\""
       echo " --SENHA_ADM|--senha_adm                       | <Obrigatorio> Senha do Administrador do LDAP. Ex: \"h#s9a8dnag62!@\""
       echo ""
@@ -68,7 +68,7 @@ while [ -n "$1" ]; do # while loop starts
       exit 1;
       ;;
 
-	  *) echo "Parametro $1 nao reconhecido. Digite --HELP|--help para lista de parametros"       
+	  *) echo "Parametro $1 nao reconhecido. Digite --HELP|--help para lista de parametros"
        ;;
 
 	esac

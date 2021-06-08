@@ -53,7 +53,7 @@ while [ -n "$1" ]; do # while loop starts
 
     --DOMINIO_LDAP|--dominio_ldap) DOMINIO_LDAP=$2; shift;;
     --SENHA_ADM|--senha_adm) SENHA_ADM=$2; shift;;
-  
+
     --HELP|--help)
       echo ""
       echo "Para executar este script é necessário que todos os parametros sejam informados corretamente."
@@ -68,7 +68,7 @@ while [ -n "$1" ]; do # while loop starts
       exit 1;
       ;;
 
-	  *) echo "Parametro $1 nao reconhecido. Digite --HELP|--help para lista de parametros"       
+	  *) echo "Parametro $1 nao reconhecido. Digite --HELP|--help para lista de parametros"
        ;;
 
 	esac

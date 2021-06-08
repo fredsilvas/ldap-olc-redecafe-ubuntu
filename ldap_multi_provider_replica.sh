@@ -67,20 +67,20 @@ while [ -n "$1" ]; do # while loop starts
       echo ""
       echo " sudo ./ldap_multi_provider_replica.sh --SERVER_ID 1 --DOMINIO_LDAP cn=xpto,dc=local --LDAP_PROVIDER_1 provider1.ldap.xpto.local --LDAP_PROVIDER_2 provider2.ldap.xpto.local --LDAP_PROVIDER_3 provider3.ldap.xpto.local --SENHA_REPLICA_CONF \"senha_replica_conf\" --SENHA_REPLICA_MDB \"senha_replica_mdb\" --SENHA_ADM \"senha_de_administrador\""
       echo ""
-      echo " --SERVER_ID|--server_id                    | <Obrigatorio> ID único de 1 dígitos do Servidor. Ex: 1"
-      echo " --DOMINIO_LDAP|--dominio_ldap              | <Obrigatorio> Dominio no formato LDAP. Ex: cn=xpto,cn=local" 
-      echo " --LDAP_PROVIDER_1|--ldap_provider_1                | <Obrigatorio> IP ou fqdn do servidor Provider 1. Ex: \"172.16.1.1\" ou \"provider-1.dominio.com.br\""
-      echo " --LDAP_PROVIDER_2|--ldap_provider_2                | <Obrigatorio> IP ou fqdn do servidor Provider 2. Ex: \"172.16.1.2\" ou \"provider-2.dominio.com.br\""
-      echo " --LDAP_PROVIDER_3|--ldap_provider_3                | <Obrigatorio> IP ou fqdn do servidor Provider 3. Ex: \"172.16.1.3\" ou \"provider-3.dominio.com.br\""
-      echo " --SENHA_REPLICA_CONF|--senha_replica_conf  | <Obrigatorio> Senha do usuario de Replica da base conf. Ex: \"h#s9a8dnag62!@\""
-      echo " --SENHA_ADM|--senha_adm                    | <Obrigatorio> Senha do Administrador do LDAP. Ex: \"h#s9a8dnag62!@\""
+      echo " --SERVER_ID|--server_id                   | <Obrigatorio> ID único de 1 dígitos do Servidor. Ex: 1"
+      echo " --DOMINIO_LDAP|--dominio_ldap             | <Obrigatorio> Dominio no formato LDAP. Ex: cn=xpto,cn=local"
+      echo " --LDAP_PROVIDER_1|--ldap_provider_1       | <Obrigatorio> IP ou fqdn do servidor Provider 1. Ex: \"172.16.1.1\" ou \"provider-1.dominio.com.br\""
+      echo " --LDAP_PROVIDER_2|--ldap_provider_2       | <Obrigatorio> IP ou fqdn do servidor Provider 2. Ex: \"172.16.1.2\" ou \"provider-2.dominio.com.br\""
+      echo " --LDAP_PROVIDER_3|--ldap_provider_3       | <Obrigatorio> IP ou fqdn do servidor Provider 3. Ex: \"172.16.1.3\" ou \"provider-3.dominio.com.br\""
+      echo " --SENHA_REPLICA_CONF|--senha_replica_conf | <Obrigatorio> Senha do usuario de Replica da base conf. Ex: \"h#s9a8dnag62!@\""
+      echo " --SENHA_ADM|--senha_adm                   | <Obrigatorio> Senha do Administrador do LDAP. Ex: \"h#s9a8dnag62!@\""
       echo ""
       echo "*** IMPORTANTE ***"
       echo "Quando um parametro necessitar de valores separados por espaco, escrever o mesmo entre aspas duplas. Exemplo \"Empresa XPTO Ltda\""
       exit 1;
       ;;
 
-	  *) echo "Parametro $1 nao reconhecido. Digite --HELP|--help para lista de parametros"       
+	  *) echo "Parametro $1 nao reconhecido. Digite --HELP|--help para lista de parametros"
        ;;
 
 	esac
