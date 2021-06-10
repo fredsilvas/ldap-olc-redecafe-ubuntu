@@ -519,7 +519,7 @@ objectClass: brPerson
 objectClass: schacPersonalCharacteristics
 objectClass: eduPerson
 uid: teste.login
-brcpf: 12345678900
+brcpf: 21562232037
 brpassport: A23456
 departmentNumber:12345
 schacCountryOfCitizenship: Brazil
