@@ -101,9 +101,6 @@ add: olcDbIndex
 olcDbIndex: default pres,eq
 -
 add: olcDbIndex
-olcDbIndex: uid pres,eq,sub
--
-add: olcDbIndex
 olcDbIndex: userPassword eq
 -
 add: olcDbIndex
@@ -119,7 +116,7 @@ add: olcDbIndex
 olcDbIndex: brEduAffiliation eq
 -
 add: olcDbIndex
-olcDbIndex: uniqueIdentifier pres,eq,sub
+olcDbIndex: uniqueIdentifier pres,eq
 _EOF_
 
 ldapmodify -Y EXTERNAL -H ldapi:/// -f ldap_indexes.ldif
